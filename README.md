@@ -1,6 +1,6 @@
 # 🦙 LlamaReader AI — ChatGPT for Documents & Webpages
 
-A full-featured, private, multi-user **ChatGPT-style Conversational RAG Application** powered by **LlamaIndex**, **Groq LLM (`gpt-oss-120b`)**, **FastAPI**, and **SQLite**.
+A full-featured, private, multi-user **ChatGPT-style Conversational RAG Application** powered by **LlamaIndex**, **Groq LLM (`gpt-oss-120b`)**, **Qdrant Cloud**, **Upstash Redis**, **FastAPI**, and **SQLite**.
 
 Upload PDFs, text documents, or paste any public webpage URL to chat with them in real time with word-by-word streaming, persistent conversation history, and a modern collapsible sidebar.
 
@@ -54,8 +54,8 @@ Upload PDFs, text documents, or paste any public webpage URL to chat with them i
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/littleint/chat-with-webpage.git
-cd chat-with-webpage
+git clone https://github.com/littleint/conversational-rag-ai.git
+cd conversational-rag-ai
 ```
 
 ### 2. Create and activate a virtual environment
@@ -98,28 +98,26 @@ The web app will be available at:
 ## 📂 Project Structure
 
 ```text
-llamaindex_project/
+conversational-rag-ai/
 ├── app/
 │   ├── auth.py              # Password hashing (bcrypt) & JWT token handling
-│   ├── config.py            # Groq LLM & HuggingFace embedding settings
+│   ├── config.py            # Groq LLM, Qdrant Cloud & HuggingFace settings
 │   ├── database.py          # SQLite connection and session management
 │   ├── loaders.py           # Web scraping & PDF/TXT document ingestion
 │   ├── main.py              # FastAPI REST endpoints & SSE streaming
 │   ├── models.py            # SQLAlchemy models (User, Conversation, Message)
-│   └── rag_engine.py        # Vector index management, persistence & memory
+│   ├── rag_engine.py        # Qdrant Cloud vector search & RAG pipeline
+│   └── upstash_chat_store.py# Upstash Redis short-term working memory (<5ms)
 ├── static/
 │   ├── css/
 │   │   └── style.css        # ChatGPT dark theme stylesheet
 │   ├── js/
 │   │   └── app.js           # Client-side state, streaming reader & UI logic
 │   └── index.html           # Single-page application HTML layout
-├── storage/                 # Local vector indices (ignored by Git)
-│   └── indices/
-│       └── {conv_id}/       # On-disk vector store and docstore JSON files
 ├── llamareader.db           # Local SQLite database (ignored by Git)
 ├── temp_uploads/            # Temporary upload buffer (ignored by Git)
-├── .env                     # API keys (ignored by Git)
-├── .gitignore               # Excludes secrets, databases & vector storage
+├── .env                     # Cloud API keys & credentials (ignored by Git)
+├── .gitignore               # Excludes secrets, databases & temp files
 ├── requirements.txt         # Project Python dependencies
 ├── run.py                   # Application startup script
 └── README.md                # Project documentation
@@ -139,20 +137,22 @@ llamaindex_project/
 - `POST /api/conversations` — Create a new conversation session.
 - `GET /api/conversations/{id}` — Fetch conversation details, attached document info, and full message history.
 - `PATCH /api/conversations/{id}` — Rename a conversation title.
-- `DELETE /api/conversations/{id}` — Delete a conversation, its messages, and its persistent vector index on disk.
+- `DELETE /api/conversations/{id}` — Delete a conversation, its messages, its Qdrant vectors, and Redis memory.
 
 ### Document Ingestion & Querying
-- `POST /api/conversations/{id}/index-url` — Scrape and index a webpage URL for this chat.
-- `POST /api/conversations/{id}/upload` — Upload and index a PDF or TXT file for this chat.
-- `POST /api/conversations/{id}/query` — Stream real-time answers (`text/event-stream`) with multi-turn memory.
+- `POST /api/conversations/{id}/index-url` — Scrape and index a webpage URL into Qdrant Cloud.
+- `POST /api/conversations/{id}/upload` — Upload and index a PDF or TXT file into Qdrant Cloud.
+- `POST /api/conversations/{id}/query` — Stream real-time answers (`text/event-stream`) with Upstash working memory.
 
 ---
 
 ## 🔒 Security & Privacy
 
-- **100% Local Data**: All chat messages, user records, and vector indices stay on your machine in `llamareader.db` and `storage/indices/`.
-- **Git Protection**: `.gitignore` is strictly configured to prevent accidentally committing `.env` API keys, database files, or document stores to GitHub.
-- **Passwords**: Passwords are cryptographically salted and hashed using `bcrypt` before storage.
+- **Zero Local Disk Footprint for Vectors**: Document embeddings are securely stored in your private **Qdrant Cloud** cluster with multi-tenant payload isolation (`conversation_id`).
+- **Auto-Expiring Active Memory**: Short-term conversational context is cached in **Upstash Redis** with an automatic 30-day TTL.
+- **Relational Data Protection**: User records and full message logs stay safely stored in `llamareader.db`.
+- **Git Protection**: `.gitignore` strictly prevents committing `.env` API keys, database files, or staging uploads to GitHub.
+- **Cryptographic Passwords**: Passwords are salted and hashed using `bcrypt` (12 rounds) before storage.
 
 ---
 
