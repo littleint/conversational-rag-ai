@@ -21,9 +21,10 @@ from app.rag_engine import rag_engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize SQLite tables and AI models once on server startup
+    # Initialize database tables immediately (<0.2s)
     init_db()
-    init_settings()
+    # Warm up AI models in background thread so Uvicorn opens the port instantly
+    asyncio.create_task(asyncio.to_thread(init_settings))
     yield
 
 app = FastAPI(
