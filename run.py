@@ -12,7 +12,7 @@ def main():
     is_cloud = "PORT" in os.environ
     port = int(os.getenv("PORT", 8000))
     host = "0.0.0.0"
-    url = f"http://127.0.0.1:{port}"
+    url = f"http://0.0.0.0:{port}" if is_cloud else f"http://localhost:{port}"
     
     print("\n" + "="*60)
     print("  * Starting LlamaReader Web UI")

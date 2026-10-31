@@ -2,8 +2,6 @@ import os
 from dotenv import load_dotenv
 
 from llama_index.core import Settings
-from llama_index.llms.groq import Groq
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import qdrant_client
 from qdrant_client.http import models
 
@@ -47,6 +45,9 @@ def ensure_qdrant_collection():
 
 def init_settings():
     """Initialize LlamaIndex LLM, Embedding, and Cloud Vector / Memory engines."""
+    from llama_index.llms.groq import Groq
+    from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+
     if not GROQ_API_KEY:
         print("Warning: GROQ_API_KEY is not set in your .env file!")
         

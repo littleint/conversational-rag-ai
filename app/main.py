@@ -380,6 +380,11 @@ async def query_conversation(
         "title": conv.title
     }
 
+@app.get("/health")
+async def health_check():
+    """Lightweight health check endpoint for cloud hosting."""
+    return {"status": "ok", "app": "LlamaReader AI"}
+
 # ----------------- Static SPA Frontend -----------------
 
 BASE_DIR = Path(__file__).resolve().parent.parent
