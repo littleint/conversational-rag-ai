@@ -82,6 +82,7 @@ QDRANT_URL=https://xxxx.cloud.qdrant.io
 QDRANT_API_KEY=your_qdrant_api_key_here
 UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your_upstash_token_here
+DATABASE_URL=postgresql://user:pass@ep-xyz.aws.neon.tech/neondb?sslmode=require
 ```
 *(All three services offer permanent free tiers with zero credit card required).*
 

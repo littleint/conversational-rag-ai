@@ -16,3 +16,4 @@ bcrypt
 qdrant-client
 llama-index-vector-stores-qdrant
 upstash-redis
+psycopg2-binary
