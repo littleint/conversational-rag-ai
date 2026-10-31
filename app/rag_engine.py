@@ -1,74 +1,129 @@
 import os
-import shutil
-from pathlib import Path
-from typing import Optional, List, Tuple, Dict
+from typing import Optional, List, Tuple
 from sqlalchemy.orm import Session
 
-from llama_index.core import VectorStoreIndex, Document, StorageContext, load_index_from_storage, Settings
+from llama_index.core import VectorStoreIndex, StorageContext, Settings
 from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.llms import ChatMessage, MessageRole
 from llama_index.core.chat_engine import SimpleChatEngine
+from llama_index.core.vector_stores import MetadataFilters, ExactMatchFilter
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+from qdrant_client.http import models
 
+from app.config import (
+    get_qdrant_client,
+    QDRANT_COLLECTION,
+    UPSTASH_REDIS_REST_URL,
+    UPSTASH_REDIS_REST_TOKEN
+)
+from app.upstash_chat_store import UpstashChatStore
 from app.loaders import load_web_url, load_pdf_file, load_txt_file
-from app.models import Conversation, Message
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-STORAGE_DIR = BASE_DIR / "storage" / "indices"
-STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+from app.models import Message
 
 
 class RAGEngineManager:
-    """Manages document vectorization, disk persistence, and per-conversation chat engines."""
+    """
+    Manages cloud-native document vectorization (Qdrant Cloud)
+    and ultra-fast short-term conversational working memory (Upstash Redis).
+    """
 
     def __init__(self):
-        # In-memory cache of loaded indices: {conv_id: VectorStoreIndex}
-        self._indices_cache: Dict[str, VectorStoreIndex] = {}
+        # Qdrant Cloud Vector Store
+        self.qdrant_client = get_qdrant_client()
+        self.vector_store = QdrantVectorStore(
+            client=self.qdrant_client,
+            collection_name=QDRANT_COLLECTION
+        )
+        self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
 
-    def _get_storage_path(self, conversation_id: str) -> Path:
-        return STORAGE_DIR / conversation_id
+        # Upstash Redis Short-Term Chat Store
+        if UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN:
+            self.chat_store = UpstashChatStore(
+                url=UPSTASH_REDIS_REST_URL,
+                token=UPSTASH_REDIS_REST_TOKEN,
+                ttl=2592000  # 30 days retention
+            )
+        else:
+            self.chat_store = None
+
+    @property
+    def index(self) -> VectorStoreIndex:
+        """Lazily load VectorStoreIndex bound to current Settings.embed_model."""
+        return VectorStoreIndex.from_vector_store(
+            self.vector_store,
+            embed_model=Settings.embed_model
+        )
 
     def has_persisted_index(self, conversation_id: str) -> bool:
-        """Check if an index is persisted on disk for the given conversation."""
-        path = self._get_storage_path(conversation_id)
-        return path.exists() and (path / "docstore.json").exists()
+        """Check if any document vector points exist in Qdrant for this conversation."""
+        try:
+            count_result = self.qdrant_client.count(
+                collection_name=QDRANT_COLLECTION,
+                count_filter=models.Filter(
+                    must=[
+                        models.FieldCondition(
+                            key="conversation_id",
+                            match=models.MatchValue(value=conversation_id)
+                        )
+                    ]
+                )
+            )
+            return count_result.count > 0
+        except Exception as e:
+            print(f"Error checking Qdrant index for conversation {conversation_id}: {e}")
+            return False
 
-    def get_or_load_index(self, conversation_id: str) -> Optional[VectorStoreIndex]:
-        """Retrieve an index from memory cache or load it from disk."""
-        if conversation_id in self._indices_cache:
-            return self._indices_cache[conversation_id]
+    def delete_conversation_points(self, conversation_id: str):
+        """Remove all vector chunks for a specific conversation from Qdrant Cloud."""
+        try:
+            self.qdrant_client.delete(
+                collection_name=QDRANT_COLLECTION,
+                points_selector=models.FilterSelector(
+                    filter=models.Filter(
+                        must=[
+                            models.FieldCondition(
+                                key="conversation_id",
+                                match=models.MatchValue(value=conversation_id)
+                            )
+                        ]
+                    )
+                )
+            )
+        except Exception as e:
+            print(f"Warning: Failed to delete Qdrant points for {conversation_id}: {e}")
 
-        storage_path = self._get_storage_path(conversation_id)
-        if self.has_persisted_index(conversation_id):
+    def delete_conversation_index(self, conversation_id: str):
+        """Clean up both Qdrant Cloud vector chunks and Upstash Redis short-term memory."""
+        self.delete_conversation_points(conversation_id)
+        if self.chat_store:
             try:
-                storage_context = StorageContext.from_defaults(persist_dir=str(storage_path))
-                index = load_index_from_storage(storage_context)
-                self._indices_cache[conversation_id] = index
-                return index
+                self.chat_store.delete_messages(conversation_id)
             except Exception as e:
-                print(f"Error loading index for conversation {conversation_id}: {e}")
-                return None
-        return None
-
-    def save_index(self, conversation_id: str, index: VectorStoreIndex):
-        """Persist index to disk and update cache."""
-        storage_path = self._get_storage_path(conversation_id)
-        storage_path.mkdir(parents=True, exist_ok=True)
-        index.storage_context.persist(persist_dir=str(storage_path))
-        self._indices_cache[conversation_id] = index
+                print(f"Warning: Failed to delete Upstash chat memory for {conversation_id}: {e}")
 
     def index_url(self, conversation_id: str, url: str) -> Tuple[bool, str]:
-        """Scrape and index a webpage URL for a conversation."""
+        """Scrape webpage, vectorize chunks, and push directly to Qdrant Cloud."""
         try:
             docs = load_web_url(url)
-            print(f"Building vector index for conversation {conversation_id}: {url} ({len(docs)} chunks)...", flush=True)
-            index = VectorStoreIndex.from_documents(docs)
-            self.save_index(conversation_id, index)
-            return True, f"Successfully indexed '{url}' ({len(docs)} sections loaded)."
+            # Tag each document with conversation_id for multi-tenant isolation
+            for doc in docs:
+                doc.metadata["conversation_id"] = conversation_id
+
+            # Clean previous points for this conversation if replacing document
+            self.delete_conversation_points(conversation_id)
+
+            print(f"Indexing URL to Qdrant Cloud for conv {conversation_id}: {url} ({len(docs)} sections)...", flush=True)
+            VectorStoreIndex.from_documents(
+                docs,
+                storage_context=self.storage_context,
+                embed_model=Settings.embed_model
+            )
+            return True, f"Successfully indexed '{url}' to Qdrant Cloud ({len(docs)} sections loaded)."
         except Exception as e:
             return False, f"Failed to index URL: {str(e)}"
 
     def index_file(self, conversation_id: str, temp_file_path: str, filename: str) -> Tuple[bool, str]:
-        """Load and index a PDF or TXT file for a conversation."""
+        """Parse PDF/TXT, vectorize chunks, and push directly to Qdrant Cloud."""
         try:
             ext = os.path.splitext(filename)[1].lower()
             if ext == ".pdf":
@@ -78,81 +133,110 @@ class RAGEngineManager:
             else:
                 return False, f"Unsupported file type: {ext}. Please upload a PDF or TXT file."
 
-            print(f"Building vector index for conversation {conversation_id}: {filename} ({len(docs)} chunks)...", flush=True)
-            index = VectorStoreIndex.from_documents(docs)
-            self.save_index(conversation_id, index)
-            return True, f"Successfully indexed '{filename}' ({len(docs)} sections loaded)."
+            # Tag each document with conversation_id for multi-tenant isolation
+            for doc in docs:
+                doc.metadata["conversation_id"] = conversation_id
+
+            # Clean previous points for this conversation if replacing document
+            self.delete_conversation_points(conversation_id)
+
+            print(f"Indexing file to Qdrant Cloud for conv {conversation_id}: {filename} ({len(docs)} chunks)...", flush=True)
+            VectorStoreIndex.from_documents(
+                docs,
+                storage_context=self.storage_context,
+                embed_model=Settings.embed_model
+            )
+            return True, f"Successfully indexed '{filename}' to Qdrant Cloud ({len(docs)} sections loaded)."
         except Exception as e:
             return False, f"Failed to index file: {str(e)}"
 
-    def delete_conversation_index(self, conversation_id: str):
-        """Clean up on-disk storage and cache for a deleted conversation."""
-        self._indices_cache.pop(conversation_id, None)
-        storage_path = self._get_storage_path(conversation_id)
-        if storage_path.exists():
-            try:
-                shutil.rmtree(storage_path)
-            except Exception as e:
-                print(f"Warning: Failed to delete index folder {storage_path}: {e}")
+    def _get_chat_memory(self, conversation_id: str, db: Session, current_question: str = "") -> ChatMemoryBuffer:
+        """
+        Fetch short-term conversational context from Upstash Redis (<5ms).
+        If Redis is cold/empty, automatically hydrates from SQLite.
+        """
+        if self.chat_store:
+            existing = self.chat_store.get_messages(conversation_id)
+            if not existing:
+                # Hydrate from SQLite
+                past_messages = (
+                    db.query(Message)
+                    .filter(Message.conversation_id == conversation_id)
+                    .order_by(Message.created_at.asc())
+                    .all()
+                )
+                # If current_question was already saved to SQLite before calling this, exclude it
+                # so chat_engine doesn't receive it twice in memory
+                if current_question and past_messages and past_messages[-1].role == "user" and past_messages[-1].content == current_question:
+                    past_messages = past_messages[:-1]
 
-    def chat(self, conversation_id: str, question: str, db: Session) -> str:
-        """Query the conversation using its document index and message history."""
-        # 1. Fetch past messages for this conversation from SQLite to re-populate memory
+                chat_history = []
+                for msg in past_messages:
+                    role = MessageRole.USER if msg.role == "user" else MessageRole.ASSISTANT
+                    chat_history.append(ChatMessage(role=role, content=msg.content))
+
+                if chat_history:
+                    self.chat_store.set_messages(conversation_id, chat_history)
+
+            return ChatMemoryBuffer.from_defaults(
+                chat_store=self.chat_store,
+                chat_store_key=conversation_id,
+                token_limit=3500
+            )
+
+        # Fallback if Redis is not configured
         past_messages = (
             db.query(Message)
             .filter(Message.conversation_id == conversation_id)
             .order_by(Message.created_at.asc())
             .all()
         )
+        if current_question and past_messages and past_messages[-1].role == "user" and past_messages[-1].content == current_question:
+            past_messages = past_messages[:-1]
 
         chat_history = []
         for msg in past_messages:
             role = MessageRole.USER if msg.role == "user" else MessageRole.ASSISTANT
             chat_history.append(ChatMessage(role=role, content=msg.content))
+        return ChatMemoryBuffer.from_defaults(chat_history=chat_history, token_limit=3500)
 
-        memory = ChatMemoryBuffer.from_defaults(chat_history=chat_history, token_limit=3500)
+    def chat(self, conversation_id: str, question: str, db: Session) -> str:
+        """Synchronous query with conversational memory and Qdrant RAG."""
+        memory = self._get_chat_memory(conversation_id, db, current_question=question)
+        has_docs = self.has_persisted_index(conversation_id)
 
-        # 2. Check if this conversation has an indexed document
-        index = self.get_or_load_index(conversation_id)
-
-        if index:
-            # Document is attached: perform RAG with conversation memory
-            chat_engine = index.as_chat_engine(
+        if has_docs:
+            filters = MetadataFilters(
+                filters=[ExactMatchFilter(key="conversation_id", value=conversation_id)]
+            )
+            chat_engine = self.index.as_chat_engine(
                 chat_mode="condense_plus_context",
                 llm=Settings.llm,
                 memory=memory,
+                filters=filters,
                 verbose=False
             )
             response = chat_engine.chat(question)
             return str(response)
         else:
-            # No document attached: general conversation mode using LLM
             chat_engine = SimpleChatEngine.from_defaults(llm=Settings.llm, memory=memory)
             response = chat_engine.chat(question)
             return str(response)
 
     def stream_chat(self, conversation_id: str, question: str, db: Session):
-        """Query conversation and yield tokens as a real-time generator."""
-        past_messages = (
-            db.query(Message)
-            .filter(Message.conversation_id == conversation_id)
-            .order_by(Message.created_at.asc())
-            .all()
-        )
+        """Real-time streaming query generator with Upstash short-term memory & Qdrant RAG."""
+        memory = self._get_chat_memory(conversation_id, db, current_question=question)
+        has_docs = self.has_persisted_index(conversation_id)
 
-        chat_history = []
-        for msg in past_messages:
-            role = MessageRole.USER if msg.role == "user" else MessageRole.ASSISTANT
-            chat_history.append(ChatMessage(role=role, content=msg.content))
-
-        memory = ChatMemoryBuffer.from_defaults(chat_history=chat_history, token_limit=3500)
-        index = self.get_or_load_index(conversation_id)
-
-        if index:
-            chat_engine = index.as_chat_engine(
+        if has_docs:
+            filters = MetadataFilters(
+                filters=[ExactMatchFilter(key="conversation_id", value=conversation_id)]
+            )
+            chat_engine = self.index.as_chat_engine(
                 chat_mode="condense_plus_context",
                 llm=Settings.llm,
                 memory=memory,
+                filters=filters,
                 verbose=False
             )
             streaming_response = chat_engine.stream_chat(question)

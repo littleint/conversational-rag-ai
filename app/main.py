@@ -1,5 +1,6 @@
 import os
 import shutil
+import asyncio
 from datetime import datetime
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -337,6 +338,7 @@ async def query_conversation(
                 for token in token_gen:
                     accumulated.append(token)
                     yield f"data: {json.dumps({'token': token})}\n\n"
+                    await asyncio.sleep(0)
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e)})}\n\n"
             finally:

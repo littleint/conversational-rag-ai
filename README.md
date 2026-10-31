@@ -28,13 +28,10 @@ Upload PDFs, text documents, or paste any public webpage URL to chat with them i
   - **Webpages**: Scrape and index articles, blogs, and documentation URLs using `requests` and `html2text`.
   - **Files**: Drag-and-drop or upload PDF, TXT, Markdown, CSV, and log files.
 
-- **💾 100% Local Persistent Vector Storage**:
-  - Each conversation saves its vector index to a dedicated local directory:
-    ```text
-    storage/indices/{conversation_id}/
-    ```
-  - **Zero Re-indexing Overhead**: Switching between chats in the sidebar reloads the pre-computed embeddings and document text from disk in milliseconds.
-  - Prior chat messages are automatically rehydrated into LlamaIndex's `ChatMemoryBuffer` for multi-turn conversational context.
+- **☁️ Cloud-Native Dual Memory (Zero Cost & Sub-10ms Speed)**:
+  - **Short-Term Memory**: **Upstash Redis** maintains low-latency active conversational context (<5ms) with auto-expiring TTLs and automatic SQLite hydration.
+  - **Long-Term Memory (Semantic)**: **Qdrant Cloud** stores vectorized document and webpage embeddings with payload-level multi-tenant isolation (`conversation_id`).
+  - **Long-Term Archive**: Local **SQLite (`llamareader.db`)** manages permanent user accounts and historical chat logs.
 
 ---
 
@@ -43,8 +40,10 @@ Upload PDFs, text documents, or paste any public webpage URL to chat with them i
 | Layer | Technologies |
 | :--- | :--- |
 | **Backend API** | FastAPI, Uvicorn, Pydantic, Python-Multipart |
-| **AI / RAG Framework** | LlamaIndex (`VectorStoreIndex`, `ChatMemoryBuffer`, `SimpleChatEngine`) |
+| **AI / RAG Framework** | LlamaIndex (`VectorStoreIndex`, `ChatMemoryBuffer`, `SimpleChatEngine`, `QdrantVectorStore`) |
 | **LLM & Embeddings** | **Groq Cloud API** (`openai/gpt-oss-120b`), **HuggingFace** (`BAAI/bge-small-en-v1.5`) |
+| **Short-Term Memory** | **Upstash Redis** (Serverless REST Key-Value) |
+| **Long-Term Vector Memory** | **Qdrant Cloud** (Managed In-Memory HNSW) |
 | **Database & Auth** | SQLite, SQLAlchemy ORM, Bcrypt, PyJWT |
 | **Document Parsers** | PyPDF, HTML2Text, Requests |
 | **Frontend** | Vanilla HTML5, Modern CSS3 (ChatGPT Dark Theme), JavaScript (ES6+), Marked.js, Highlight.js |
@@ -79,8 +78,12 @@ pip install -r requirements.txt
 Create a `.env` file in the project root:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
+QDRANT_URL=https://xxxx.cloud.qdrant.io
+QDRANT_API_KEY=your_qdrant_api_key_here
+UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_upstash_token_here
 ```
-*(Get your free high-speed API key at [console.groq.com](https://console.groq.com)).*
+*(All three services offer permanent free tiers with zero credit card required).*
 
 ### 5. Launch the application
 ```powershell

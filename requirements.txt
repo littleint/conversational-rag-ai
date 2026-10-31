@@ -13,3 +13,6 @@ sqlalchemy
 passlib[bcrypt]
 pyjwt
 bcrypt
+qdrant-client
+llama-index-vector-stores-qdrant
+upstash-redis
