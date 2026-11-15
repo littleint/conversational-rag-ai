@@ -13,9 +13,11 @@ DB_PATH = BASE_DIR / "llamareader.db"
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
-    # Cloud providers and Neon often provide postgres://, which SQLAlchemy requires as postgresql://
+    # Explicitly use postgresql+psycopg2 dialect for SQLAlchemy 2.x compatibility
     if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif DATABASE_URL.startswith("postgresql://") and "+psycopg" not in DATABASE_URL:
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
     if "neon.tech" in DATABASE_URL and "sslmode" not in DATABASE_URL:
         sep = "&" if "?" in DATABASE_URL else "?"
         DATABASE_URL = f"{DATABASE_URL}{sep}sslmode=require"
