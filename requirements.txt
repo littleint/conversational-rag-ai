@@ -2,6 +2,7 @@ llama-index
 llama-index-llms-groq
 fastembed
 llama-index-embeddings-fastembed
+llama-index-embeddings-huggingface
 html2text
 requests
 python-dotenv

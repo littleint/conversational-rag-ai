@@ -82,6 +82,8 @@ QDRANT_URL=https://xxxx.cloud.qdrant.io
 QDRANT_API_KEY=your_qdrant_api_key_here
 UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your_upstash_token_here
+DATABASE_URL=postgresql://user:password@ep-xyz.aws.neon.tech/neondb?sslmode=require
+HF_TOKEN=hf_your_huggingface_token_here  # Optional: enables 100% cloud serverless embeddings (0 MB local RAM)
 JWT_SECRET=your_jwt_secret_key_here  # Optional: defaults to secure internal secret
 ```
 *(Groq, Qdrant Cloud, and Upstash all offer permanent free tiers with zero credit card required).*

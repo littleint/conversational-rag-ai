@@ -15,6 +15,7 @@ QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 UPSTASH_REDIS_REST_URL = os.getenv("UPSTASH_REDIS_REST_URL") or os.getenv("UPSTASH_REDIS_URL")
 UPSTASH_REDIS_REST_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 QDRANT_COLLECTION = "llamareader_knowledge"
 EMBEDDING_MODEL_NAME = "BAAI/bge-small-en-v1.5"
@@ -56,8 +57,16 @@ def init_settings():
         api_key=GROQ_API_KEY
     )
     
-    print(f"Loading FastEmbed Model ({EMBEDDING_MODEL_NAME}) via ONNX Runtime...", flush=True)
-    Settings.embed_model = FastEmbedEmbedding(model_name=EMBEDDING_MODEL_NAME, threads=1)
+    if HF_TOKEN:
+        print(f"Loading Cloud Serverless Embedding API (Hugging Face: {EMBEDDING_MODEL_NAME})...", flush=True)
+        from llama_index.embeddings.huggingface import HuggingFaceInferenceAPIEmbedding
+        Settings.embed_model = HuggingFaceInferenceAPIEmbedding(
+            model_name=EMBEDDING_MODEL_NAME,
+            token=HF_TOKEN
+        )
+    else:
+        print(f"Loading FastEmbed Model ({EMBEDDING_MODEL_NAME}) via ONNX Runtime...", flush=True)
+        Settings.embed_model = FastEmbedEmbedding(model_name=EMBEDDING_MODEL_NAME, threads=1)
 
     # Initialize Qdrant collection on startup
     if QDRANT_URL and QDRANT_API_KEY:
