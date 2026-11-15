@@ -385,7 +385,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 STATIC_DIR = BASE_DIR / "static"
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def serve_index():
     """Serve the single-page application frontend."""
     return FileResponse(STATIC_DIR / "index.html")
