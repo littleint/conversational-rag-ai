@@ -90,6 +90,25 @@ if (typeof marked !== "undefined") {
     });
 }
 
+// Math / LaTeX rendering helper via KaTeX
+function renderMathInElementWrapper(element) {
+    if (typeof renderMathInElement !== "undefined" && element) {
+        try {
+            renderMathInElement(element, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "\\[", right: "\\]", display: true },
+                    { left: "$", right: "$", display: false },
+                    { left: "\\(", right: "\\)", display: false }
+                ],
+                throwOnError: false
+            });
+        } catch (e) {
+            console.warn("KaTeX render error:", e);
+        }
+    }
+}
+
 // ================= AUTHENTICATION HELPERS =================
 function getToken() {
     return localStorage.getItem("llamareader_token");
@@ -901,6 +920,9 @@ async function sendMessage() {
         currentAbortController = null;
         setGeneratingState(false);
         typingIndicator.classList.add("hidden");
+        if (assistantBubble) {
+            renderMathInElementWrapper(assistantBubble);
+        }
         scrollToBottom();
         messageInput.focus();
     }
@@ -923,6 +945,7 @@ function appendMessageBubble(role, content, shouldScroll = true) {
         if (typeof hljs !== "undefined") {
             bubble.querySelectorAll("pre code").forEach(el => hljs.highlightElement(el));
         }
+        renderMathInElementWrapper(bubble);
     } else {
         bubble.textContent = content;
     }

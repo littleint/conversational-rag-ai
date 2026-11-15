@@ -21,6 +21,16 @@ from app.loaders import load_web_url, load_pdf_file, load_txt_file
 from app.models import Message
 
 
+SYSTEM_PROMPT = (
+    "You are a helpful, knowledgeable AI assistant. "
+    "Always format your responses clearly and cleanly using GitHub-flavored Markdown:\n"
+    "- Structure your explanations with clear headings (###), bullet points, and bold key terms.\n"
+    "- When presenting mathematical formulas or physical equations, write them on their own line using clean notation or LaTeX ($$ ... $$) and define each variable clearly.\n"
+    "- Prefer well-organized bulleted sections over wide or cluttered tables unless a side-by-side comparison table is specifically requested.\n"
+    "- Keep explanations accurate, engaging, and easy to read."
+)
+
+
 class RAGEngineManager:
     """
     Manages cloud-native document vectorization (Qdrant Cloud)
@@ -213,13 +223,18 @@ class RAGEngineManager:
                 chat_mode="condense_plus_context",
                 llm=Settings.llm,
                 memory=memory,
+                system_prompt=SYSTEM_PROMPT,
                 filters=filters,
                 verbose=False
             )
             response = chat_engine.chat(question)
             return str(response)
         else:
-            chat_engine = SimpleChatEngine.from_defaults(llm=Settings.llm, memory=memory)
+            chat_engine = SimpleChatEngine.from_defaults(
+                llm=Settings.llm,
+                memory=memory,
+                system_prompt=SYSTEM_PROMPT
+            )
             response = chat_engine.chat(question)
             return str(response)
 
@@ -236,13 +251,18 @@ class RAGEngineManager:
                 chat_mode="condense_plus_context",
                 llm=Settings.llm,
                 memory=memory,
+                system_prompt=SYSTEM_PROMPT,
                 filters=filters,
                 verbose=False
             )
             streaming_response = chat_engine.stream_chat(question)
             return streaming_response.response_gen
         else:
-            chat_engine = SimpleChatEngine.from_defaults(llm=Settings.llm, memory=memory)
+            chat_engine = SimpleChatEngine.from_defaults(
+                llm=Settings.llm,
+                memory=memory,
+                system_prompt=SYSTEM_PROMPT
+            )
             streaming_response = chat_engine.stream_chat(question)
             return streaming_response.response_gen
 
