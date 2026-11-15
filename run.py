@@ -1,4 +1,3 @@
-import os
 import sys
 import webbrowser
 import uvicorn
@@ -9,23 +8,21 @@ def main():
     except Exception:
         pass
 
-    is_cloud = "PORT" in os.environ
-    port = int(os.getenv("PORT", 8000))
-    host = "0.0.0.0"
-    url = f"http://0.0.0.0:{port}" if is_cloud else f"http://localhost:{port}"
+    port = 8000
+    host = "127.0.0.1"
+    url = f"http://{host}:{port}"
     
     print("\n" + "="*60)
     print("  * Starting LlamaReader Web UI")
     print(f"  * App URL: {url}")
     print("  * Press Ctrl+C in this terminal to stop the server.")
-    print("="*60 + "\n", flush=True)
+    print("="*60 + "\n")
     
-    # Auto-open browser only when running locally (not on cloud servers)
-    if not is_cloud:
-        try:
-            webbrowser.open(url)
-        except Exception:
-            pass
+    # Optional auto-open browser in a separate thread/timer
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
         
     uvicorn.run("app.main:app", host=host, port=port, reload=False)
 

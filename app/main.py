@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime
 from pathlib import Path
 from contextlib import asynccontextmanager
-from typing import Optional, List
+from typing import Optional
 
 import json
 from fastapi import FastAPI, HTTPException, UploadFile, File, Depends, status
@@ -21,10 +21,9 @@ from app.rag_engine import rag_engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Initialize database tables immediately (<0.2s)
+    # Initialize SQLite tables and AI models once on server startup
     init_db()
-    # Warm up AI models in background thread so Uvicorn opens the port instantly
-    asyncio.create_task(asyncio.to_thread(init_settings))
+    init_settings()
     yield
 
 app = FastAPI(
@@ -379,11 +378,6 @@ async def query_conversation(
         "answer": answer,
         "title": conv.title
     }
-
-@app.get("/health")
-async def health_check():
-    """Lightweight health check endpoint for cloud hosting."""
-    return {"status": "ok", "app": "LlamaReader AI"}
 
 # ----------------- Static SPA Frontend -----------------
 

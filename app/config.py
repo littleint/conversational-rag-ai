@@ -2,6 +2,8 @@ import os
 from dotenv import load_dotenv
 
 from llama_index.core import Settings
+from llama_index.llms.groq import Groq
+from llama_index.embeddings.fastembed import FastEmbedEmbedding
 import qdrant_client
 from qdrant_client.http import models
 
@@ -45,9 +47,6 @@ def ensure_qdrant_collection():
 
 def init_settings():
     """Initialize LlamaIndex LLM, Embedding, and Cloud Vector / Memory engines."""
-    from llama_index.llms.groq import Groq
-    from llama_index.embeddings.huggingface import HuggingFaceEmbedding
-
     if not GROQ_API_KEY:
         print("Warning: GROQ_API_KEY is not set in your .env file!")
         
@@ -57,8 +56,8 @@ def init_settings():
         api_key=GROQ_API_KEY
     )
     
-    print(f"Loading Embedding Model ({EMBEDDING_MODEL_NAME}) into RAM...", flush=True)
-    Settings.embed_model = HuggingFaceEmbedding(model_name=EMBEDDING_MODEL_NAME)
+    print(f"Loading FastEmbed Model ({EMBEDDING_MODEL_NAME}) via ONNX Runtime...", flush=True)
+    Settings.embed_model = FastEmbedEmbedding(model_name=EMBEDDING_MODEL_NAME)
 
     # Initialize Qdrant collection on startup
     if QDRANT_URL and QDRANT_API_KEY:

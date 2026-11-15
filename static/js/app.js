@@ -787,6 +787,7 @@ function createAssistantMessageBubble() {
 
     const bubble = document.createElement("div");
     bubble.className = "msg-bubble";
+    bubble.innerHTML = '<div class="typing-bubble inline"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>';
 
     row.appendChild(avatar);
     row.appendChild(bubble);
@@ -814,7 +815,7 @@ async function sendMessage() {
 
     // 2. Prepare assistant bubble and activate Stop button
     const assistantBubble = createAssistantMessageBubble();
-    typingIndicator.classList.remove("hidden");
+    //typingIndicator.classList.remove("hidden");
     setGeneratingState(true);
     scrollToBottom();
 
@@ -981,7 +982,11 @@ sidebarCollapseBtn.addEventListener("click", () => {
 });
 
 mobileMenuBtn.addEventListener("click", () => {
-    sidebar.classList.toggle("mobile-open");
+    if (window.innerWidth <= 768) {
+        sidebar.classList.toggle("mobile-open");
+    } else {
+        sidebar.classList.toggle("collapsed");
+    }
 });
 
 // ================= BOOTSTRAP =================

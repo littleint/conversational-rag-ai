@@ -1,6 +1,6 @@
 # 🦙 LlamaReader AI — ChatGPT for Documents & Webpages
 
-A full-featured, private, multi-user **ChatGPT-style Conversational RAG Application** powered by **LlamaIndex**, **Groq LLM (`gpt-oss-120b`)**, **Qdrant Cloud**, **Upstash Redis**, **FastAPI**, and **SQLite**.
+A full-featured, private, multi-user **ChatGPT-style Conversational RAG Application** powered by **LlamaIndex**, **Groq LLM (`gpt-oss-120b`)**, **FastEmbed**, **Qdrant Cloud**, **Upstash Redis**, **FastAPI**, and **SQLite**.
 
 Upload PDFs, text documents, or paste any public webpage URL to chat with them in real time with word-by-word streaming, persistent conversation history, and a modern collapsible sidebar.
 
@@ -41,7 +41,7 @@ Upload PDFs, text documents, or paste any public webpage URL to chat with them i
 | :--- | :--- |
 | **Backend API** | FastAPI, Uvicorn, Pydantic, Python-Multipart |
 | **AI / RAG Framework** | LlamaIndex (`VectorStoreIndex`, `ChatMemoryBuffer`, `SimpleChatEngine`, `QdrantVectorStore`) |
-| **LLM & Embeddings** | **Groq Cloud API** (`openai/gpt-oss-120b`), **HuggingFace** (`BAAI/bge-small-en-v1.5`) |
+| **LLM & Embeddings** | **Groq Cloud API** (`openai/gpt-oss-120b`), **FastEmbed / ONNX** (`BAAI/bge-small-en-v1.5`) |
 | **Short-Term Memory** | **Upstash Redis** (Serverless REST Key-Value) |
 | **Long-Term Vector Memory** | **Qdrant Cloud** (Managed In-Memory HNSW) |
 | **Database & Auth** | SQLite, SQLAlchemy ORM, Bcrypt, PyJWT |
@@ -82,9 +82,9 @@ QDRANT_URL=https://xxxx.cloud.qdrant.io
 QDRANT_API_KEY=your_qdrant_api_key_here
 UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your_upstash_token_here
-DATABASE_URL=postgresql://user:pass@ep-xyz.aws.neon.tech/neondb?sslmode=require
+JWT_SECRET=your_jwt_secret_key_here  # Optional: defaults to secure internal secret
 ```
-*(All three services offer permanent free tiers with zero credit card required).*
+*(Groq, Qdrant Cloud, and Upstash all offer permanent free tiers with zero credit card required).*
 
 ### 5. Launch the application
 ```powershell
@@ -101,27 +101,27 @@ The web app will be available at:
 ```text
 conversational-rag-ai/
 ├── app/
-│   ├── auth.py              # Password hashing (bcrypt) & JWT token handling
-│   ├── config.py            # Groq LLM, Qdrant Cloud & HuggingFace settings
-│   ├── database.py          # SQLite connection and session management
-│   ├── loaders.py           # Web scraping & PDF/TXT document ingestion
-│   ├── main.py              # FastAPI REST endpoints & SSE streaming
-│   ├── models.py            # SQLAlchemy models (User, Conversation, Message)
-│   ├── rag_engine.py        # Qdrant Cloud vector search & RAG pipeline
-│   └── upstash_chat_store.py# Upstash Redis short-term working memory (<5ms)
+│   ├── auth.py                  # Password hashing (bcrypt) & JWT token handling
+│   ├── config.py                # Groq LLM, FastEmbed (ONNX), Qdrant Cloud & Upstash setup
+│   ├── database.py              # SQLite connection and session management
+│   ├── loaders.py               # Web scraping & PDF/TXT document ingestion
+│   ├── main.py                  # FastAPI REST endpoints & SSE streaming
+│   ├── models.py                # SQLAlchemy models (User, Conversation, Message)
+│   ├── rag_engine.py            # Vector index management, persistence & memory
+│   └── upstash_chat_store.py    # Upstash Redis low-latency chat memory store
 ├── static/
 │   ├── css/
-│   │   └── style.css        # ChatGPT dark theme stylesheet
+│   │   └── style.css            # Modern dark theme stylesheet
 │   ├── js/
-│   │   └── app.js           # Client-side state, streaming reader & UI logic
-│   └── index.html           # Single-page application HTML layout
-├── llamareader.db           # Local SQLite database (ignored by Git)
-├── temp_uploads/            # Temporary upload buffer (ignored by Git)
-├── .env                     # Cloud API keys & credentials (ignored by Git)
-├── .gitignore               # Excludes secrets, databases & temp files
-├── requirements.txt         # Project Python dependencies
-├── run.py                   # Application startup script
-└── README.md                # Project documentation
+│   │   └── app.js               # Client-side state, streaming reader & UI logic
+│   └── index.html               # Single-page application HTML layout
+├── llamareader.db               # Local SQLite database (ignored by Git)
+├── temp_uploads/                # Temporary upload buffer (ignored by Git)
+├── .env                         # API keys & secrets (ignored by Git)
+├── .gitignore                   # Excludes secrets, databases & caches
+├── requirements.txt             # Project Python dependencies
+├── run.py                       # Application startup script
+└── README.md                    # Project documentation
 ```
 
 ---
@@ -138,22 +138,20 @@ conversational-rag-ai/
 - `POST /api/conversations` — Create a new conversation session.
 - `GET /api/conversations/{id}` — Fetch conversation details, attached document info, and full message history.
 - `PATCH /api/conversations/{id}` — Rename a conversation title.
-- `DELETE /api/conversations/{id}` — Delete a conversation, its messages, its Qdrant vectors, and Redis memory.
+- `DELETE /api/conversations/{id}` — Delete a conversation, its messages, and its persistent vector index from Qdrant Cloud and Upstash memory.
 
 ### Document Ingestion & Querying
-- `POST /api/conversations/{id}/index-url` — Scrape and index a webpage URL into Qdrant Cloud.
-- `POST /api/conversations/{id}/upload` — Upload and index a PDF or TXT file into Qdrant Cloud.
-- `POST /api/conversations/{id}/query` — Stream real-time answers (`text/event-stream`) with Upstash working memory.
+- `POST /api/conversations/{id}/index-url` — Scrape and index a webpage URL for this chat.
+- `POST /api/conversations/{id}/upload` — Upload and index a PDF or TXT file for this chat.
+- `POST /api/conversations/{id}/query` — Stream real-time answers (`text/event-stream`) with multi-turn memory.
 
 ---
 
 ## 🔒 Security & Privacy
 
-- **Zero Local Disk Footprint for Vectors**: Document embeddings are securely stored in your private **Qdrant Cloud** cluster with multi-tenant payload isolation (`conversation_id`).
-- **Auto-Expiring Active Memory**: Short-term conversational context is cached in **Upstash Redis** with an automatic 30-day TTL.
-- **Relational Data Protection**: User records and full message logs stay safely stored in `llamareader.db`.
-- **Git Protection**: `.gitignore` strictly prevents committing `.env` API keys, database files, or staging uploads to GitHub.
-- **Cryptographic Passwords**: Passwords are salted and hashed using `bcrypt` (12 rounds) before storage.
+- **Data Ownership**: User records and conversation archives are stored securely in your database (`llamareader.db`), while active embeddings are isolated per conversation in Qdrant Cloud.
+- **Git Protection**: `.gitignore` is strictly configured to prevent accidentally committing `.env` API keys, database files, or document stores to GitHub.
+- **Passwords**: Passwords are cryptographically salted and hashed using `bcrypt` before storage.
 
 ---
 

@@ -12,11 +12,12 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <!-- Highlight.js for code syntax highlighting in markdown -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <!-- Marked.js for fast markdown rendering -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css?v=4.0">
+    <link rel="stylesheet" href="/static/css/style.css?v=4.1">
 </head>
 
 <body>
@@ -32,8 +33,8 @@
             <div class="sidebar-header">
                 <div class="sidebar-brand">
                     <div class="brand-logo">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" fill="none"
-                            stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                             <polyline points="14 2 14 8 20 8"></polyline>
                             <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -41,7 +42,7 @@
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
                     </div>
-                    <span class="brand-title">LlamaReader</span>
+                    <span class="brand-title">DocuWeb AI</span>
                 </div>
                 <button id="sidebarCollapseBtn" class="icon-btn" title="Toggle Sidebar">
                     <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
@@ -54,7 +55,8 @@
             <!-- New Chat Button -->
             <div class="sidebar-action">
                 <button id="newChatBtn" class="new-chat-btn">
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2"
+                        fill="none">
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
@@ -97,16 +99,17 @@
             <header class="chat-header">
                 <div class="header-left">
                     <button id="mobileMenuBtn" class="icon-btn mobile-menu-btn" title="Open Sidebar">
-                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
-                            <line x1="3" y1="12" x2="21" y2="12"></line>
-                            <line x1="3" y1="6" x2="21" y2="6"></line>
-                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
                         </svg>
                     </button>
                     <div class="chat-title-wrapper">
                         <h2 id="currentChatTitle" class="chat-title" title="Click to rename">New Chat</h2>
                         <button id="editTitleBtn" class="icon-btn-tiny" title="Rename conversation">
-                            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none">
+                            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2"
+                                fill="none">
                                 <path d="M12 20h9"></path>
                                 <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
                             </svg>
@@ -123,8 +126,11 @@
 
                     <!-- Toggle Document Drawer Button -->
                     <button id="toggleDrawerBtn" class="attach-doc-btn" title="Attach or change document for this chat">
-                        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <path
+                                d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                            </path>
                         </svg>
                         <span id="drawerBtnText">Attach Document</span>
                     </button>
@@ -140,7 +146,8 @@
                             <h3>Attach Knowledge to this Chat</h3>
                         </div>
                         <button id="closeDrawerBtn" class="icon-btn-tiny" title="Close drawer">
-                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                                fill="none">
                                 <line x1="18" y1="6" x2="6" y2="18"></line>
                                 <line x1="6" y1="6" x2="18" y2="18"></line>
                             </svg>
@@ -150,15 +157,19 @@
                     <!-- Source Selection Tabs -->
                     <div class="drawer-tabs">
                         <button id="tabUrlBtn" class="drawer-tab active">
-                            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none">
+                            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2"
+                                fill="none">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="2" y1="12" x2="22" y2="12"></line>
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                <path
+                                    d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                </path>
                             </svg>
                             <span>Webpage URL</span>
                         </button>
                         <button id="tabFileBtn" class="drawer-tab">
-                            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none">
+                            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2"
+                                fill="none">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
@@ -170,11 +181,13 @@
                     <div id="urlContent" class="drawer-panel active">
                         <form id="urlIndexForm" class="url-form">
                             <div class="input-with-icon">
-                                <svg class="field-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                                <svg class="field-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor"
+                                    stroke-width="2" fill="none">
                                     <circle cx="12" cy="12" r="10"></circle>
                                     <line x1="2" y1="12" x2="22" y2="12"></line>
                                 </svg>
-                                <input type="url" id="urlInput" placeholder="https://en.wikipedia.org/wiki/Artificial_intelligence" required>
+                                <input type="url" id="urlInput"
+                                    placeholder="https://en.wikipedia.org/wiki/Artificial_intelligence" required>
                             </div>
                             <button type="submit" id="indexUrlBtn" class="primary-btn">
                                 <span class="btn-text">Index Webpage</span>
@@ -187,12 +200,14 @@
                     <div id="fileContent" class="drawer-panel hidden">
                         <div id="dropzone" class="dropzone">
                             <input type="file" id="fileInput" accept=".pdf,.txt,.md,.log,.csv,.json" hidden>
-                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="1.8" fill="none">
+                            <svg viewBox="0 0 24 24" width="32" height="32" stroke="currentColor" stroke-width="1.8"
+                                fill="none">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                            <p class="dropzone-text">Drag & drop your document here, or <span class="highlight">browse files</span></p>
+                            <p class="dropzone-text">Drag & drop your document here, or <span class="highlight">browse
+                                    files</span></p>
                             <span class="dropzone-hint">Supports PDF, TXT, MD up to 25MB</span>
                         </div>
                         <div id="fileSelectedBar" class="file-selected-bar hidden">
@@ -233,7 +248,8 @@
                                 <span>Ask questions from research papers or books</span>
                             </div>
                         </button>
-                        <button class="suggestion-card" data-prompt="Explain the difference between supervised and unsupervised learning.">
+                        <button class="suggestion-card"
+                            data-prompt="Explain the difference between supervised and unsupervised learning.">
                             <span class="card-icon">💡</span>
                             <div class="card-body">
                                 <strong>Ask Groq AI</strong>
@@ -248,7 +264,7 @@
 
                 <!-- Typing indicator -->
                 <div class="typing-indicator hidden" id="typingIndicator">
-                    <div class="assistant-avatar">🤖</div>
+                    <div class="assistant-avatar">🦙</div>
                     <div class="typing-bubble">
                         <span class="dot"></span>
                         <span class="dot"></span>
@@ -271,13 +287,18 @@
 
                 <form id="chatForm" class="prompt-form">
                     <button type="button" id="promptAttachBtn" class="prompt-icon-btn" title="Attach Document or URL">
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2"
+                            fill="none">
+                            <path
+                                d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                            </path>
                         </svg>
                     </button>
-                    <textarea id="messageInput" rows="1" placeholder="Message LlamaReader AI... (Shift+Enter for new line)" required></textarea>
+                    <textarea id="messageInput" rows="1"
+                        placeholder="Message LlamaReader AI... (Shift+Enter for new line)" required></textarea>
                     <button type="submit" id="sendBtn" class="send-btn" title="Send Message">
-                        <svg class="send-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                        <svg class="send-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor"
+                            stroke-width="2.2" fill="none">
                             <line x1="22" y1="2" x2="11" y2="13"></line>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                         </svg>
@@ -287,7 +308,8 @@
                     </button>
                 </form>
                 <div class="prompt-footer">
-                    <span>LlamaReader uses Groq + LlamaIndex. Conversations are saved 100% locally on your computer.</span>
+                    <span>LlamaReader uses Groq + LlamaIndex. Conversations are saved 100% locally on your
+                        computer.</span>
                 </div>
             </div>
 
@@ -299,15 +321,16 @@
         <div class="auth-card">
             <div class="auth-header">
                 <div class="auth-logo">
-                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2.2" fill="none">
+                    <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2.2"
+                        fill="none">
                         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                         <polyline points="14 2 14 8 20 8"></polyline>
                         <line x1="16" y1="13" x2="8" y2="13"></line>
                         <line x1="16" y1="17" x2="8" y2="17"></line>
                     </svg>
                 </div>
-                <h2>Welcome to LlamaReader</h2>
-                <p>Sign in to access your chat history and private documents</p>
+                <h2>DocuWeb AI</h2>
+                <p>Chat with any webpage or document in real time</p>
             </div>
 
             <!-- Tab switcher -->
@@ -323,22 +346,26 @@
                 <div class="form-group">
                     <label for="authUsername">Username</label>
                     <div class="input-with-icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                            fill="none">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                             <circle cx="12" cy="7" r="4"></circle>
                         </svg>
-                        <input type="text" id="authUsername" placeholder="Enter username" autocomplete="username" required>
+                        <input type="text" id="authUsername" placeholder="Enter username" autocomplete="username"
+                            required>
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="authPassword">Password</label>
                     <div class="input-with-icon">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2"
+                            fill="none">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                         </svg>
-                        <input type="password" id="authPassword" placeholder="Enter password (min 4 chars)" autocomplete="current-password" required>
+                        <input type="password" id="authPassword" placeholder="Enter password (min 4 chars)"
+                            autocomplete="current-password" required>
                     </div>
                 </div>
 
@@ -348,15 +375,14 @@
                 </button>
 
                 <div style="text-align: center; margin-top: 8px;">
-                    <button type="button" id="quickDemoBtn" class="btn-secondary" style="width: 100%; border-radius: 8px; font-weight: 500; font-size: 13px;">
+                    <button type="button" id="quickDemoBtn" class="btn-secondary"
+                        style="width: 100%; border-radius: 8px; font-weight: 500; font-size: 13px;">
                         ⚡ Quick Demo Login (Instant Access)
                     </button>
                 </div>
             </form>
 
-            <div class="auth-footer">
-                <span>Data stored locally on your machine. No cloud tracking.</span>
-            </div>
+
         </div>
     </div>
 
@@ -377,7 +403,7 @@
     <!-- Custom Toast Notification -->
     <div id="toast" class="toast hidden"></div>
 
-    <script src="/static/js/app.js?v=4.0"></script>
+    <script src="/static/js/app.js?v=4.1"></script>
 </body>
 
 </html>

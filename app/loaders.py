@@ -43,13 +43,11 @@ def load_pdf_file(file_path: str, filename: str = "") -> List[Document]:
         raise ValueError("The provided PDF file has 0 pages.")
 
     documents: List[Document] = []
-    full_text_chunks = []
 
     for page_idx, page in enumerate(reader.pages):
         text = page.extract_text() or ""
         text = text.strip()
         if text:
-            full_text_chunks.append(text)
             documents.append(
                 Document(
                     text=text,

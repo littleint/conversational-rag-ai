@@ -1,5 +1,5 @@
 import os
-from typing import Optional, List, Tuple
+from typing import Tuple
 from sqlalchemy.orm import Session
 
 from llama_index.core import VectorStoreIndex, StorageContext, Settings

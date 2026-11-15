@@ -1,7 +1,7 @@
 llama-index
 llama-index-llms-groq
-llama-index-embeddings-huggingface
-llama-index-readers-web
+fastembed
+llama-index-embeddings-fastembed
 html2text
 requests
 python-dotenv
@@ -10,10 +10,8 @@ uvicorn
 pypdf
 python-multipart
 sqlalchemy
-passlib[bcrypt]
 pyjwt
 bcrypt
 qdrant-client
 llama-index-vector-stores-qdrant
 upstash-redis
-psycopg2-binary
