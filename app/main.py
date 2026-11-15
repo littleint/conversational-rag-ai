@@ -227,7 +227,7 @@ async def index_conversation_url(
     if not url.startswith("http://") and not url.startswith("https://"):
         url = "https://" + url
 
-    success, message = rag_engine.index_url(conv.id, url)
+    success, message = await asyncio.to_thread(rag_engine.index_url, conv.id, url)
     if not success:
         raise HTTPException(status_code=400, detail=message)
 
@@ -276,7 +276,7 @@ async def upload_conversation_file(
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        success, message = rag_engine.index_file(conv.id, str(temp_path), filename=file.filename)
+        success, message = await asyncio.to_thread(rag_engine.index_file, conv.id, str(temp_path), filename=file.filename)
         if not success:
             raise HTTPException(status_code=400, detail=message)
 

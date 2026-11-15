@@ -10,6 +10,7 @@ uvicorn
 pypdf
 python-multipart
 sqlalchemy
+psycopg2-binary
 pyjwt
 bcrypt
 qdrant-client

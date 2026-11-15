@@ -57,7 +57,7 @@ def init_settings():
     )
     
     print(f"Loading FastEmbed Model ({EMBEDDING_MODEL_NAME}) via ONNX Runtime...", flush=True)
-    Settings.embed_model = FastEmbedEmbedding(model_name=EMBEDDING_MODEL_NAME)
+    Settings.embed_model = FastEmbedEmbedding(model_name=EMBEDDING_MODEL_NAME, threads=1)
 
     # Initialize Qdrant collection on startup
     if QDRANT_URL and QDRANT_API_KEY:

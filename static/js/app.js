@@ -623,7 +623,13 @@ urlIndexForm.addEventListener("submit", async (e) => {
             },
             body: JSON.stringify({ url })
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data = {};
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = { detail: text || `Server error (${res.status})` };
+        }
 
         if (res.ok) {
             updateSourceBadge("url", url);
@@ -640,10 +646,10 @@ urlIndexForm.addEventListener("submit", async (e) => {
             showToast("Webpage successfully indexed!");
             appendMessageBubble("assistant", `I have indexed **${escapeHtml(url)}**. You can now ask questions about this webpage!`);
         } else {
-            alert(data.detail || "Failed to index webpage.");
+            alert(data.detail || `Failed to index webpage (${res.status}).`);
         }
     } catch (err) {
-        alert("Network error indexing URL.");
+        alert(err.message || "Network error indexing URL.");
     } finally {
         btnText.style.display = "inline";
         btnSpinner.classList.add("hidden");

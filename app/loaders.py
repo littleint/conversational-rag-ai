@@ -5,7 +5,7 @@ import html2text
 from pypdf import PdfReader
 from llama_index.core import Document
 
-def load_web_url(url: str, max_chars: int = 60000) -> List[Document]:
+def load_web_url(url: str, max_chars: int = 25000) -> List[Document]:
     """Fetch webpage HTML with browser headers, convert to Markdown text, and return as LlamaIndex Documents."""
     headers = {
         "User-Agent": (
