@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 from llama_index.core import Settings
 from llama_index.llms.groq import Groq
-from llama_index.embeddings.fastembed import FastEmbedEmbedding
+from llama_index.embeddings.jinaai import JinaEmbedding
 import qdrant_client
 from qdrant_client.http import models
 
@@ -15,11 +15,11 @@ QDRANT_URL = os.getenv("QDRANT_URL")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 UPSTASH_REDIS_REST_URL = os.getenv("UPSTASH_REDIS_REST_URL") or os.getenv("UPSTASH_REDIS_URL")
 UPSTASH_REDIS_REST_TOKEN = os.getenv("UPSTASH_REDIS_REST_TOKEN")
-HF_TOKEN = os.getenv("HF_TOKEN")
+JINA_API_KEY = os.getenv("JINA_API_KEY")
 
-QDRANT_COLLECTION = "llamareader_knowledge"
-EMBEDDING_MODEL_NAME = "BAAI/bge-small-en-v1.5"
-EMBEDDING_DIM = 384
+QDRANT_COLLECTION = "llamareader_knowledge_v3"
+EMBEDDING_MODEL_NAME = "jina-embeddings-v3"
+EMBEDDING_DIM = 1024
 
 
 def get_qdrant_client():
@@ -47,9 +47,9 @@ def ensure_qdrant_collection():
 
 
 def init_settings():
-    """Initialize LlamaIndex LLM, Embedding, and Cloud Vector / Memory engines."""
+    """Initialize LlamaIndex LLM, Jina Cloud Embedding, and Qdrant / Upstash engines."""
     if not GROQ_API_KEY:
-        print("Warning: GROQ_API_KEY is not set in your .env file!")
+        print("Warning: GROQ_API_KEY is not set in your .env file!", flush=True)
         
     print("Loading LLM (Groq: openai/gpt-oss-120b)...", flush=True)
     Settings.llm = Groq(
@@ -57,16 +57,15 @@ def init_settings():
         api_key=GROQ_API_KEY
     )
     
-    if HF_TOKEN:
-        print(f"Loading Cloud Serverless Embedding API (Hugging Face: {EMBEDDING_MODEL_NAME})...", flush=True)
-        from llama_index.embeddings.huggingface import HuggingFaceInferenceAPIEmbedding
-        Settings.embed_model = HuggingFaceInferenceAPIEmbedding(
-            model_name=EMBEDDING_MODEL_NAME,
-            token=HF_TOKEN
-        )
-    else:
-        print(f"Loading FastEmbed Model ({EMBEDDING_MODEL_NAME}) via ONNX Runtime...", flush=True)
-        Settings.embed_model = FastEmbedEmbedding(model_name=EMBEDDING_MODEL_NAME, threads=1)
+    if not JINA_API_KEY:
+        print("Warning: JINA_API_KEY is not set in your .env or Render environment!", flush=True)
+
+    print(f"Loading Jina AI Cloud Embedding API ({EMBEDDING_MODEL_NAME})...", flush=True)
+    Settings.embed_model = JinaEmbedding(
+        api_key=JINA_API_KEY,
+        model=EMBEDDING_MODEL_NAME,
+        dimensions=EMBEDDING_DIM
+    )
 
     # Initialize Qdrant collection on startup
     if QDRANT_URL and QDRANT_API_KEY:

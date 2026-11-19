@@ -1,6 +1,6 @@
 # 🦙 LlamaReader AI — ChatGPT for Documents & Webpages
 
-A full-featured, private, multi-user **ChatGPT-style Conversational RAG Application** powered by **LlamaIndex**, **Groq LLM (`gpt-oss-120b`)**, **FastEmbed**, **Qdrant Cloud**, **Upstash Redis**, **FastAPI**, and **SQLite**.
+A full-featured, private, multi-user **ChatGPT-style Conversational RAG Application** powered by **LlamaIndex**, **Groq LLM (`gpt-oss-120b`)**, **Jina AI Embeddings**, **Qdrant Cloud**, **Upstash Redis**, **FastAPI**, and **Neon PostgreSQL**.
 
 Upload PDFs, text documents, or paste any public webpage URL to chat with them in real time with word-by-word streaming, persistent conversation history, and a modern collapsible sidebar.
 
@@ -41,7 +41,7 @@ Upload PDFs, text documents, or paste any public webpage URL to chat with them i
 | :--- | :--- |
 | **Backend API** | FastAPI, Uvicorn, Pydantic, Python-Multipart |
 | **AI / RAG Framework** | LlamaIndex (`VectorStoreIndex`, `ChatMemoryBuffer`, `SimpleChatEngine`, `QdrantVectorStore`) |
-| **LLM & Embeddings** | **Groq Cloud API** (`openai/gpt-oss-120b`), **FastEmbed / ONNX** (`BAAI/bge-small-en-v1.5`) |
+| **LLM & Embeddings** | **Groq Cloud API** (`openai/gpt-oss-120b`), **Jina AI API** (`jina-embeddings-v3`) |
 | **Short-Term Memory** | **Upstash Redis** (Serverless REST Key-Value) |
 | **Long-Term Vector Memory** | **Qdrant Cloud** (Managed In-Memory HNSW) |
 | **Database & Auth** | SQLite, SQLAlchemy ORM, Bcrypt, PyJWT |
@@ -78,15 +78,15 @@ pip install -r requirements.txt
 Create a `.env` file in the project root:
 ```env
 GROQ_API_KEY=your_groq_api_key_here
+JINA_API_KEY=jina_your_api_key_here
 QDRANT_URL=https://xxxx.cloud.qdrant.io
 QDRANT_API_KEY=your_qdrant_api_key_here
 UPSTASH_REDIS_REST_URL=https://xxxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your_upstash_token_here
 DATABASE_URL=postgresql://user:password@ep-xyz.aws.neon.tech/neondb?sslmode=require
-HF_TOKEN=hf_your_huggingface_token_here  # Optional: enables 100% cloud serverless embeddings (0 MB local RAM)
 JWT_SECRET=your_jwt_secret_key_here  # Optional: defaults to secure internal secret
 ```
-*(Groq, Qdrant Cloud, and Upstash all offer permanent free tiers with zero credit card required).*
+*(Groq, Jina AI, Qdrant Cloud, Neon, and Upstash all offer permanent free tiers with zero credit card required).*
 
 ### 5. Launch the application
 ```powershell
