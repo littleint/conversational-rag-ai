@@ -442,6 +442,9 @@ newChatBtn.addEventListener("click", () => {
 });
 
 async function selectConversation(convId) {
+    if (window.innerWidth <= 768) {
+        sidebar.classList.remove("mobile-open");
+    }
     activeConversationId = convId;
     renderConversationList();
     closeDrawer();
@@ -1007,7 +1010,11 @@ document.querySelectorAll(".suggestion-card").forEach(card => {
 
 // Sidebar collapse toggle
 sidebarCollapseBtn.addEventListener("click", () => {
-    sidebar.classList.toggle("collapsed");
+    if (window.innerWidth <= 768) {
+        sidebar.classList.remove("mobile-open");
+    } else {
+        sidebar.classList.toggle("collapsed");
+    }
 });
 
 mobileMenuBtn.addEventListener("click", () => {
